@@ -1,0 +1,63 @@
+﻿body {
+    margin:0px;
+}
+
+.loginHeader {
+    background: url(Quickbooks-Logo.png) 30px no-repeat #393a3d;
+    background-size: 155px 31px;
+    height: 60px;
+    padding: 12px 0;
+}
+
+#chart {
+  padding: 8px;
+  background: #fff;
+  font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+}
+
+.title {
+    font-weight: bold;
+    font-size: 24px;
+    text-align: center;
+    margin-top: 6px;
+    margin-bottom: 6px;
+}
+text {
+  pointer-events: none;
+}
+
+.grandparent:hover rect {
+    fill: #ffffff;
+}
+
+.grandparent text {
+  font-weight: bold;
+}
+
+rect {
+  fill: none;
+  stroke: #fff;
+}
+
+rect.parent,
+.grandparent rect {
+  stroke-width: 2px;
+}
+
+rect.parent {
+    pointer-events: none;
+}
+
+.children rect.parent,
+.grandparent rect {
+  cursor: pointer;
+}
+
+.children rect.parent {
+  fill: #bbb;
+  fill-opacity: .9;
+}
+
+.children:hover rect.child {
+  fill: #bbb;
+}
