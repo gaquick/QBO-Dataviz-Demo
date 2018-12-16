@@ -124,37 +124,13 @@ namespace OAuth2_Dotnet_UsingSDK
             {
                 try
                 {
-                    //output("Making QBO API Call.");
                     OAuth2RequestValidator oauthValidator = new OAuth2RequestValidator(dictionary["accessToken"]);
                     ServiceContext serviceContext = new ServiceContext(dictionary["realmId"], IntuitServicesType.QBO, oauthValidator);
                     serviceContext.IppConfiguration.BaseUrl.Qbo = "https://sandbox-quickbooks.api.intuit.com/";
-                    //serviceContext.IppConfiguration.BaseUrl.Qbo = "https://quickbooks.api.intuit.com/";//prod
                     serviceContext.IppConfiguration.MinorVersion.Qbo = "29";
-                    //ReportService reportService = new ReportService(serviceContext);
-                    ////Date should be in the format YYYY-MM-DD 
-                    ////Response format hsold be JSON as that is pnly supported rigth now for reports 
-                    //reportService.accounting_method = "Accrual";
-                    //reportService.start_date = "2018-01-01";
-                    //reportService.end_date = "2018-07-01";
-                    //////reportService.classid = "2800000000000634813"; 
-                    ////reportService.date_macro = "Last Month"; 
-                    //reportService.summarize_column_by = "Month";
-
-                    ////List<String> columndata = new List<String>();
-                    ////columndata.Add("tx_date");
-                    ////columndata.Add("dept_name");
-                    ////string coldata = String.Join(",", columndata);
-                    ////reportService.columns = coldata;
-
-                    //var report1 = reportService.ExecuteReport("TrialBalance");
-
-
-                    //DataService commonServiceQBO = new DataService(serviceContext);
-                    //Item item = new Item();
-                    //List<Item> results = commonServiceQBO.FindAll<Item>(item, 1, 1).ToList<Item>();
+                    
                     QueryService<Payment> pService = new QueryService<Payment>(serviceContext);
-                    //var In = inService.ExecuteIdsQuery("SELECT count(*) FROM Invoice").Count();
-
+                
                     payments = pService.ExecuteIdsQuery("SELECT * from Payment");
 
                     JArray jPayments = new JArray();
@@ -176,15 +152,72 @@ namespace OAuth2_Dotnet_UsingSDK
                         jPayments.WriteTo(writer);
                     }
 
-                    //batch.Add("select count(*) from Account", "queryAccount");
-                    //batch.Execute();
+                }
+                catch (IdsException ex)
+                {
+                    if (ex.Message == "Unauthorized-401")
+                    {
+                        output("Invalid/Expired Access Token.");
+                    }
+                    else
+                    {
+                        output(ex.Message);
+                    }
+                }
+                catch (IOException ex)
+                {
+                    //just ignore for now - it will just use the last saved file instead
+                }
+            }
+            else
+            {
+                output("Access token not found.");
+            }
+        }
 
-                    //if (batch.IntuitBatchItemResponses != null && batch.IntuitBatchItemResponses.Count() > 0)
-                    //{
-                    //    IntuitBatchResponse res = batch.IntuitBatchItemResponses.FirstOrDefault();
-                    //    List<Account> acc = res.Entities.ToList().ConvertAll(item => item as Account);
-                    //};
-                    //output("QBO call successful.");
+        protected void GetVendorLocations()
+        {
+            //Now assuming authentication successed, we can proceed with querying the API
+            if (dictionary.ContainsKey("accessToken") && dictionary.ContainsKey("realmId"))
+            {
+                try
+                {
+                    //output("Making QBO API Call.");
+                    OAuth2RequestValidator oauthValidator = new OAuth2RequestValidator(dictionary["accessToken"]);
+                    ServiceContext serviceContext = new ServiceContext(dictionary["realmId"], IntuitServicesType.QBO, oauthValidator);
+                    serviceContext.IppConfiguration.BaseUrl.Qbo = "https://sandbox-quickbooks.api.intuit.com/";
+                    //serviceContext.IppConfiguration.BaseUrl.Qbo = "https://quickbooks.api.intuit.com/";//prod
+                    serviceContext.IppConfiguration.MinorVersion.Qbo = "29";
+                   
+
+                    QueryService<Vendor> vService = new QueryService<Vendor>(serviceContext);
+                    IList<Vendor> vendors = vService.ExecuteIdsQuery("SELECT * from Vendor");
+
+                    JArray jVendors = new JArray();
+                    for (int i = 0; i < vendors.Count; i++)
+                    {
+                        if (vendors[i].BillAddr != null)
+                        {
+                            JObject jp = new JObject(new JProperty("name", vendors[i].DisplayName),
+                                                     new JProperty("street", vendors[i].BillAddr.Line1),
+                                                     new JProperty("city", vendors[i].BillAddr.City),
+                                                     new JProperty("state", vendors[i].BillAddr.CountrySubDivisionCode),
+                                                     new JProperty("postcode", vendors[i].BillAddr.PostalCode),
+                                                     new JProperty("balance", vendors[i].Balance),
+                                                     new JProperty("lat", decimal.Parse(vendors[i].BillAddr.Lat)),
+                                                     new JProperty("lng", decimal.Parse(vendors[i].BillAddr.Long)));
+                            jVendors.Add(jp);
+                        }
+                    }
+
+                    File.WriteAllText(Server.MapPath("/Vendors.json"), jVendors.ToString());
+
+                    // write JSON directly to a file
+                    using (StreamWriter file = File.CreateText(Server.MapPath("/Vendors.json")))
+                    using (JsonTextWriter writer = new JsonTextWriter(file))
+                    {
+                        jVendors.WriteTo(writer);
+                    }
                 }
                 catch (IdsException ex)
                 {

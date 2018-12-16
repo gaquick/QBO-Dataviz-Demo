@@ -15,6 +15,7 @@
   font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
 }
 
+
 .title {
     font-weight: bold;
     font-size: 24px;
@@ -61,3 +62,17 @@ rect.parent {
 .children:hover rect.child {
   fill: #bbb;
 }
+
+#map {
+    height: 400px; /* The height is 400 pixels */
+    width: 100%; /* The width is the width of the parent div */
+}
+
+.popupTitle {
+    font-weight: bold;
+    font-size: 14px;
+    margin-top: 2px;
+    margin-bottom: 4px;
+}
+
+
